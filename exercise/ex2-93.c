@@ -25,7 +25,13 @@ float_bits float_half(float_bits f)
         if (exp == 0xFF)
                 return f;
 
-        /* 按照向偶数舍入的方式，只有最低 2 位为全 1 时，才需要舍入 */
+        /* 按照向偶数舍入的方式，只有最低 2 位为全 1 时，才需要舍入 ,
+         * 因为，这个舍入的位是最低有效位的第２位．也就是下面的表达式
+         * 是有特殊性的．
+         *
+         * 0偶数，１奇数．这里只考虑最低２位：
+         * 00 -> 00     01 -> 00        10 -> 10        11 -> 00(进位了)
+         */
         unsigned round = (frac & 3) == 3;
 
         /*
@@ -44,7 +50,7 @@ float_bits float_half(float_bits f)
                 if (frac == 0x7FFFFF) {
                         frac = 0; /* 舍入后 M = 1.0 */
                 } else /* frac != 0x7FFFFF */ {
-                        exp = 0;
+                        exp = 0;        // 规格化与非规格化的区别是，尾数M=1+f,这也就是为什么下面的frac的最左边的位为什么是1的原因
                         frac = (1 << 22) + (frac >> 1) + round;
                 }
         } else /* exp == 0 */ {
